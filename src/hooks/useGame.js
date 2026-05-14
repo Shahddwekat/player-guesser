@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { PLAYERS, MAX_GUESSES } from '../data/players';
+import { MAX_GUESSES } from '../data/players';
 
 const MAX_HINTS = 3;
 const BASE_SCORE = 100;
 const WRONG_PENALTY = 10;
 const HINT_PENALTY = 15;
 
-function getDailyPlayer() {
+function getDailyPlayer(players) {
+  if (!players.length) return null;
   const today = new Date().toDateString();
   const seed = today.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-  return PLAYERS[seed % PLAYERS.length];
+  return players[seed % players.length];
 }
 
 function scoreGuess(guess, target) {
@@ -20,8 +21,7 @@ function scoreGuess(guess, target) {
   return 'wrong';
 }
 
-export function useGame() {
-  const [player] = useState(getDailyPlayer);
+export function useGame(players = []) {
   const [guesses, setGuesses] = useState([]);
   const [cluesRevealed, setCluesRevealed] = useState(3);
   const [gameOver, setGameOver] = useState(false);
@@ -29,8 +29,10 @@ export function useGame() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [score, setScore] = useState(BASE_SCORE);
 
+  const player = getDailyPlayer(players);
+
   const submitGuess = (name) => {
-    if (gameOver) return;
+    if (gameOver || !player) return;
     const result = scoreGuess(name, player);
     const newGuesses = [...guesses, { name, result }];
     setGuesses(newGuesses);
